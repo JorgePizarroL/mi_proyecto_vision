@@ -1,0 +1,9 @@
+names:
+  0: Sofa
+  1: Rug
+  2: Pillows
+nc: 3
+path: ''
+train:
+- C:/Users/Usuario_PC/Documents/mi_proyecto_vision/data/feedback_dataset/images
+val: C:/Users/Usuario_PC/Documents/mi_proyecto_vision/data/feedback_dataset/images

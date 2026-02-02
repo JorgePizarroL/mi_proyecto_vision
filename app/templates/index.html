@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vision Core | AI Validator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020617; color: #e2e8f0; }
+        .glass-panel { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .canvas-container { background: radial-gradient(circle, #1e293b 0%, #020617 100%); }
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .btn-primary { background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); transition: all 0.2s ease; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); }
+        canvas { border-radius: 8px; box-shadow: 0 0 40px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <nav class="h-16 glass-panel px-8 flex justify-between items-center z-30">
+        <div class="flex items-center gap-4">
+            <div class="p-2 bg-indigo-500 rounded-lg">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
+            </div>
+            <div>
+                <h1 class="text-sm font-bold tracking-widest uppercase">Vision<span class="text-indigo-400">Core</span></h1>
+                <p class="text-[10px] text-slate-500 font-medium">FURNITURE DETECTION ENGINE</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <button id="btn-retrain" onclick="triggerRetrain()" class="btn-primary px-6 py-2 rounded-full text-xs font-bold flex items-center gap-2">
+                <span id="icon-retrain">⚡ RE-TRAIN MODEL</span>
+                <span id="icon-loading" class="hidden animate-spin">⌛</span>
+                <span id="btn-text"></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="flex flex-1 overflow-hidden">
+        <aside class="w-80 glass-panel border-t-0 p-6 flex flex-col gap-8">
+            
+            <section>
+                <h3 class="text-[11px] font-bold text-indigo-400 uppercase tracking-widest mb-4">Input Source</h3>
+                <label class="group block w-full p-8 border-2 border-dashed border-slate-700 rounded-2xl text-center hover:border-indigo-500 hover:bg-indigo-500/5 transition-all cursor-pointer">
+                    <svg class="w-8 h-8 mx-auto text-slate-500 group-hover:text-indigo-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    <span class="text-xs font-semibold text-slate-400 group-hover:text-indigo-300">Drop files or click</span>
+                    <input id="image-upload" type="file" class="hidden" multiple accept="image/*" />
+                </label>
+            </section>
+
+            <section class="space-y-4">
+                <h3 class="text-[11px] font-bold text-indigo-400 uppercase tracking-widest mb-4">Control Lab</h3>
+                
+                <div class="space-y-2">
+                    <label class="text-[10px] text-slate-500 font-bold uppercase ml-1">Active Class</label>
+                    <select id="active-class-selector" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                        <option value="Sofa">🛋️ Sofa</option>
+                        <option value="Rug">⬛ Rug</option>
+                        <option value="Pillows">☁️ Pillows</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center justify-between p-3 bg-slate-900/50 rounded-xl border border-slate-800">
+                    <span class="text-xs text-slate-300">Deep Scan Mode</span>
+                    <input type="checkbox" id="toggle-hidden" onchange="toggleHiddenClasses()" class="w-5 h-5 accent-indigo-500 cursor-pointer">
+                </div>
+            </section>
+
+            <button onclick="resetData()" class="mt-auto text-[10px] text-slate-600 hover:text-red-400 text-center uppercase tracking-widest transition-colors font-bold">
+                Wipe Feedback Database
+            </button>
+        </aside>
+
+        <main id="workspace" class="flex-1 canvas-container p-8 overflow-y-auto custom-scroll flex flex-col items-center gap-12">
+            <div id="empty-state" class="mt-40 text-center">
+                <div class="w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-slate-800 shadow-2xl">
+                    <svg class="w-10 h-10 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
+                </div>
+                <h2 class="text-xl font-bold text-slate-300">Awaiting Ingestion</h2>
+                <p class="text-sm text-slate-500">Upload furniture photos for automatic validation</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const CLASS_MAP = { 'Sofa': 0, 'Rug': 1, 'Pillows': 2 };
+        let EDITOR_STATE = {};
+        let CURRENT_FILES = []; 
+        let currentDrag = null; 
+        let SHOW_HIDDEN = false;
+
+        function toggleHiddenClasses() {
+            SHOW_HIDDEN = document.getElementById('toggle-hidden').checked;
+            Object.keys(EDITOR_STATE).forEach(id => {
+                draw(id);
+                renderList(id, EDITOR_STATE[id].detections);
+            });
+        }
+
+        const uploadInput = document.getElementById('image-upload');
+        const workspace = document.getElementById('workspace');
+
+        uploadInput.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files);
+            if(!files.length) return;
+            CURRENT_FILES = files;
+            await processImages(files);
+        });
+
+        async function processImages(files) {
+            const fileMap = {};
+            files.forEach(f => fileMap[f.name] = f);
+            workspace.innerHTML = `<div class="mt-40 flex flex-col items-center gap-4"><div class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div><p class="text-indigo-400 font-bold tracking-widest text-xs uppercase">Analyzing Scene...</p></div>`;
+            
+            const formData = new FormData();
+            files.forEach(f => formData.append('files', f));
+
+            try {
+                const res = await fetch('/api/predict', { method: 'POST', body: formData });
+                const data = await res.json();
+                workspace.innerHTML = ''; 
+                data.results.forEach(item => renderEditorCard(item, fileMap[item.original_name]));
+            } catch(e) {
+                workspace.innerHTML = `<div class="bg-red-500/10 border border-red-500/50 text-red-500 p-4 rounded-xl mt-40">Connection Failure</div>`;
+            }
+        }
+
+        function renderEditorCard(item, fileObj) {
+            const card = document.createElement('div');
+            card.className = "w-full max-w-5xl bg-slate-900/50 border border-slate-800 rounded-3xl flex flex-col lg:flex-row overflow-hidden shadow-2xl shrink-0";
+            card.style.height = "650px";
+
+            const canvasId = `cnv-${item.file_id}`;
+            const listId = `list-${item.file_id}`;
+
+            card.innerHTML = `
+                <div class="flex-1 bg-[#020617] flex items-center justify-center p-6 relative">
+                    <canvas id="${canvasId}"></canvas>
+                </div>
+                <aside class="w-80 border-l border-slate-800 p-6 flex flex-col bg-slate-900/30">
+                    <div class="mb-6">
+                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-tighter">Current Asset</span>
+                        <h4 class="text-sm font-bold text-indigo-300 truncate">${item.original_name}</h4>
+                    </div>
+                    <div id="${listId}" class="flex-1 overflow-y-auto custom-scroll space-y-3 mb-6"></div>
+                    <button onclick="saveCorrection('${item.file_id}')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-black py-4 rounded-2xl shadow-lg transition-all active:scale-95">
+                        PUSH VALIDATION
+                    </button>
+                </aside>
+            `;
+            workspace.appendChild(card);
+
+            const url = URL.createObjectURL(fileObj);
+            const img = new Image();
+            img.src = url;
+            img.onload = () => {
+                const canvas = document.getElementById(canvasId);
+                canvas.width = img.width;
+                canvas.height = img.height;
+                EDITOR_STATE[item.file_id] = { detections: [...item.detections], img, canvas };
+                
+                canvas.addEventListener('mousedown', (e) => startDrawing(e, item.file_id));
+                canvas.addEventListener('mousemove', (e) => drawMove(e, item.file_id));
+                canvas.addEventListener('mouseup', (e) => endDrawing(e, item.file_id));
+                
+                draw(item.file_id);
+                renderList(item.file_id, item.detections);
+            };
+        }
+
+        function draw(id) {
+            const state = EDITOR_STATE[id];
+            const ctx = state.canvas.getContext('2d');
+            ctx.clearRect(0, 0, state.canvas.width, state.canvas.height);
+            ctx.drawImage(state.img, 0, 0);
+
+            const scale = state.canvas.width / 1000;
+
+            state.detections.forEach(det => {
+                if (!SHOW_HIDDEN && !det.is_main) return;
+                
+                // Colores Neon
+                let color = det.is_main ? "#6366f1" : "#475569";
+                if(det.class === 'Sofa') color = "#fbbf24";
+                if(det.class === 'Rug') color = "#10b981";
+
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 6 * scale;
+                ctx.lineJoin = "round";
+                ctx.strokeRect(det.box[0], det.box[1], det.box[2]-det.box[0], det.box[3]-det.box[1]);
+                
+                // Etiqueta Moderna
+                ctx.fillStyle = color;
+                const txt = `${det.class} ${Math.round(det.confidence*100)}%`;
+                const fontSize = 16 * scale;
+                ctx.font = `bold ${fontSize}px Plus Jakarta Sans`;
+                const tw = ctx.measureText(txt).width;
+                ctx.fillRect(det.box[0], det.box[1] - fontSize - 10, tw + 20, fontSize + 10);
+                ctx.fillStyle = "#000";
+                ctx.fillText(txt, det.box[0] + 10, det.box[1] - 8);
+            });
+
+            if(currentDrag && currentDrag.id === id) {
+                ctx.strokeStyle = "#f472b6";
+                ctx.setLineDash([10, 10]);
+                ctx.strokeRect(currentDrag.x1, currentDrag.y1, currentDrag.x2-currentDrag.x1, currentDrag.y2-currentDrag.y1);
+                ctx.setLineDash([]);
+            }
+        }
+
+        function renderList(id, detections) {
+            const list = document.getElementById(`list-${id}`);
+            list.innerHTML = '';
+            detections.forEach((det, idx) => {
+                if (!SHOW_HIDDEN && !det.is_main) return;
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center bg-slate-800/50 p-3 rounded-2xl border border-slate-700/50 group hover:border-indigo-500/50 transition-all";
+                div.innerHTML = `
+                    <div>
+                        <p class="text-[11px] font-bold text-white">${det.class}</p>
+                        <p class="text-[9px] text-slate-500 font-bold uppercase">${Math.round(det.confidence*100)}% match</p>
+                    </div>
+                    <button onclick="deleteBox('${id}', ${idx})" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-500/10 text-slate-600 hover:text-red-500 transition-all">✕</button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        // Lógica de dibujo (simplificada para parecer manual)
+        function getPos(c, e) {
+            const r = c.getBoundingClientRect();
+            return { x: (e.clientX - r.left) * (c.width / r.width), y: (e.clientY - r.top) * (c.height / r.height) };
+        }
+        function startDrawing(e, id) { const p = getPos(e.target, e); currentDrag = {id, x1: p.x, y1: p.y, x2: p.x, y2: p.y}; }
+        function drawMove(e, id) { if(!currentDrag) return; const p = getPos(e.target, e); currentDrag.x2 = p.x; currentDrag.y2 = p.y; draw(id); }
+        function endDrawing(e, id) {
+            if(!currentDrag) return;
+            const d = currentDrag;
+            const box = [Math.min(d.x1, d.x2), Math.min(d.y1, d.y2), Math.max(d.x1, d.x2), Math.max(d.y1, d.y2)];
+            if((box[2]-box[0]) > 20) {
+                const cls = document.getElementById('active-class-selector').value;
+                EDITOR_STATE[id].detections.push({ class: cls, class_id: CLASS_MAP[cls], confidence: 1.0, is_main: true, box });
+            }
+            currentDrag = null; draw(id); renderList(id, EDITOR_STATE[id].detections);
+        }
+
+        window.deleteBox = (id, idx) => {
+            EDITOR_STATE[id].detections.splice(idx, 1);
+            draw(id); renderList(id, EDITOR_STATE[id].detections);
+        };
+
+        window.saveCorrection = async (id) => {
+            const btn = event.target;
+            btn.innerText = "SYNCING...";
+            await fetch('/api/feedback', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ file_id: id, boxes: EDITOR_STATE[id].detections })
+            });
+            btn.innerText = "SUCCESS";
+            btn.className = "w-full bg-emerald-600 text-white text-[11px] font-black py-4 rounded-2xl";
+        };
+
+        window.triggerRetrain = async () => {
+            const icon = document.getElementById('icon-loading');
+            icon.classList.remove('hidden');
+            await fetch('/api/retrain', { method: 'POST' });
+            // Simulación de polling
+            setTimeout(() => icon.classList.add('hidden'), 5000);
+        };
+
+        window.resetData = async () => {
+            if(confirm("Confirm destructive wipe?")) {
+                await fetch('/api/reset', { method: 'POST' });
+                location.reload();
+            }
+        };
+    </script>
+</body>
+</html>
