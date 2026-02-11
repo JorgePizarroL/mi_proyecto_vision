@@ -40,8 +40,34 @@ The model predicts **independent probabilities** for each class:
 
 ## Project Structure
 
-
-
+```text
+mi_proyecto_vision/
+|
+├── app/                        # Main Application Core
+│   ├── main.py                 # FastAPI Server & Model Orchestration [cite: 9, 15]
+│   ├── retrain_service.py      # Background Retraining Logic [cite: 13, 15]
+│   ├── templates/              # UI Components (index.html) [cite: 15]
+│   └── __init__.py             # Package initialization
+│
+├── data/                       # Dataset Management [cite: 13]
+│   ├── feedback_dataset/       # Stored user corrections (labels/images) [cite: 12]
+│   ├── temp_uploads/           # Buffer for incoming inference images
+│   └── retrain_config.yaml     # Dynamic YOLO configuration file [cite: 15]
+│
+├── models/                     # Model Weights & Registry [cite: 15]
+│   ├── best.pt                 # Current Production Model [cite: 10]
+│   ├── best_v1769803043.pt     # Timestamped Version (Hot-Swap ready) [cite: 46]
+│   └── test/                   # Validation weights
+│
+├── Notebooks/                  # Experimental Phase & EDA
+│   ├── Dataset_Base01.ipynb    # Initial data processing [cite: 15]
+│   ├── Entrenamiento02.ipynb   # Training experiments [cite: 15]
+│   └── Prediction03.ipynb      # Inference testing and metrics [cite: 15]
+│
+├── models_history/             # MLflow local tracking artifacts [cite: 15, 16]
+├── short_paper/                # Documentation & Research Paper [cite: 1]
+└── README.md                   # Project Overview & Documentation
+```
 ## Installation and Execution
 
 ### 1. Clone the repository and install dependencies
