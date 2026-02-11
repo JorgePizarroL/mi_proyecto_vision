@@ -37,3 +37,53 @@ The model predicts **independent probabilities** for each class:
 
 * **Class Independence:** Being Multilabel, the system can detect a rug under a sofa and pillows on top of it without the probabilities of one affecting the other.
 * **Success Metric:** The model uses a Binary Cross-Entropy loss function, which allows each label to be treated as an independent “yes/no” problem.
+
+## Project Structure
+
+
+
+## Installation and Execution
+
+### 1. Clone the repository and install dependencies
+```bash
+git clone <URL_DEL_REPO>
+cd /folderproyect
+
+python -m venv venv
+.\venv\Scripts\activate
+pip install -r
+ultralytics
+roboflow
+opencv-python
+matplotlib
+seaborn
+pandas
+mlflow
+fastapi
+uvicorn
+python-multipart
+sqlalchemy
+jinja2
+ipykernel
+pyyaml
+pydantic
+requests
+```
+### 2. Setup de GPU
+
+You can use the following script to let the model use your GPU instead of CPU.
+```bash
+setup_gpu.bat
+```
+### 3. Run the Application
+
+You can use the automatic script on Windows:
+```bash
+
+uvicorn app.main:app --reload
+```
+
+### 4. Access the Web
+Open the browser at: `localhost:8000`
+
+---
