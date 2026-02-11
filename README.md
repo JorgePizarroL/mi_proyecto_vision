@@ -87,3 +87,10 @@ uvicorn app.main:app --reload
 Open the browser at: `localhost:8000`
 
 ---
+
+## Authors
+
+* **Jorge Pizarro** - [Github](https://github.com/JorgePizarroL)  
+  Contact: +593 98 594 8662 - jpizarrol1@est.ups.edu.ec
+* **Jonathan Morocho** - [Github](https://github.com/jonathanMorochoYu)  
+  Contact: +593 98 741 3828 - jmorochoy2@est.ups.edu.ec 
